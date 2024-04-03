@@ -62,5 +62,4 @@ class RetrospectiveServiceTest {
         verify(retrospectives, never()).put(anyString(), any(Retrospective.class));
     }
 
-    // Add more test cases for the other methods of RetrospectiveService
 }

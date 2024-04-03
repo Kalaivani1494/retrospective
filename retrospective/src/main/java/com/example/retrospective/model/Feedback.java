@@ -5,8 +5,6 @@ public class Feedback {
     private String body;
     private String feedbackType;
 
-    // Constructor, getters, and setters
-    // Omitted for brevity
     // Getter methods
     public String getName() {
         return name;
