@@ -116,7 +116,8 @@ public class RetrospectiveService implements RetrospectiveServiceInterface {
         return pagedRetrospectives;
     }
     @Override
-    public List<Retrospective> searchRetrospectivesByDate(String date) {
+    public List<Retrospective> searchRetrospectivesByDate(String date, int page, int pageSize) {
+        logger.debug("Getting all retrospectives. Page: {}, PageSize: {}", page, pageSize);
         logger.info("Searching retrospectives for date: {}", date);
         List<Retrospective> matchingRetrospectives = new ArrayList<>();
         for (Retrospective retrospective : retrospectives.values()) {
@@ -124,7 +125,10 @@ public class RetrospectiveService implements RetrospectiveServiceInterface {
                 matchingRetrospectives.add(retrospective);
             }
         }
+        int fromIndex = page * pageSize;
+        int toIndex = Math.min(fromIndex + pageSize, matchingRetrospectives.size());
+        List<Retrospective> pagedSearchRetrospectives = matchingRetrospectives.subList(fromIndex, toIndex);
         logger.info("Retrospectives found for date {}: {}", date, matchingRetrospectives.size());
-        return matchingRetrospectives;
+        return pagedSearchRetrospectives;
     }
 }

@@ -20,5 +20,5 @@ public interface RetrospectiveServiceInterface {
 
     List<Retrospective> getAllRetrospectives(int page, int pageSize);
 
-    List<Retrospective> searchRetrospectivesByDate(String date);
+    List<Retrospective> searchRetrospectivesByDate(String date, int page, int pageSize);
 }

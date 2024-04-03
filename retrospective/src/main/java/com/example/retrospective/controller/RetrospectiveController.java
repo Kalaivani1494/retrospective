@@ -62,8 +62,10 @@ public class RetrospectiveController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<Retrospective>> searchRetrospectivesByDate(@RequestParam(value = "date") String date) {
-        List<Retrospective> retrospectives = retrospectiveService.searchRetrospectivesByDate(date);
+    public ResponseEntity<List<Retrospective>> searchRetrospectivesByDate(@RequestParam(value = "date") String date,
+                                                                          @RequestParam(value = "page", defaultValue = "0") int page,
+                                                                          @RequestParam(value = "pageSize", defaultValue = "10") int pageSize) {
+        List<Retrospective> retrospectives = retrospectiveService.searchRetrospectivesByDate(date, page, pageSize);
         return new ResponseEntity<>(retrospectives, HttpStatus.OK);
     }
 }

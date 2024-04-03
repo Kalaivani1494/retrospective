@@ -106,15 +106,17 @@ public class RetrospectiveControllerTest {
     @Test
     void testSearchRetrospectivesByDate() {
         String date = "2022-01-01";
+        int page = 0;
+        int pageSize = 10;
 
         List<Retrospective> expectedRetrospectives = Collections.singletonList(new Retrospective());
-        when(retrospectiveService.searchRetrospectivesByDate(eq(date))).thenReturn(expectedRetrospectives);
+        when(retrospectiveService.searchRetrospectivesByDate(eq(date), eq(page), eq(pageSize))).thenReturn(expectedRetrospectives);
 
-        ResponseEntity<List<Retrospective>> response = retrospectiveController.searchRetrospectivesByDate(date);
+        ResponseEntity<List<Retrospective>> response = retrospectiveController.searchRetrospectivesByDate(date, page, pageSize);
 
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(expectedRetrospectives, response.getBody());
 
-        verify(retrospectiveService, times(1)).searchRetrospectivesByDate(eq(date));
+        verify(retrospectiveService, times(1)).searchRetrospectivesByDate(eq(date), eq(page), eq(pageSize));
     }
 }
