@@ -3,32 +3,32 @@ package com.example.retrospective.controller;
 import com.example.retrospective.CustomExceptionHandler;
 import com.example.retrospective.model.Retrospective;
 import com.example.retrospective.model.Feedback;
-import com.example.retrospective.service.RetrospectiveService;
+import com.example.retrospective.service.RetrospectiveServiceInterface;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.validation.annotation.Validated;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @RestController
+@Validated
 @RequestMapping("/api/retrospectives")
 public class RetrospectiveController {
     private final Logger logger = LoggerFactory.getLogger(RetrospectiveController.class);
 
     @Autowired
-    private RetrospectiveService retrospectiveService;
+    private RetrospectiveServiceInterface retrospectiveService;
 
     @PostMapping("/create")
     @ResponseStatus(HttpStatus.CREATED)
-    public ResponseEntity<Retrospective> createRetrospective(@RequestBody Retrospective retrospective) {
+    public ResponseEntity<?> createRetrospective(@RequestBody Retrospective retrospective) {
         logger.info("Creating a new retrospective: {}", retrospective);
-        Retrospective createdRetrospective = retrospectiveService.createRetrospective(retrospective);
-        logger.info("Retrospective created with Name: {}", createdRetrospective.getName());
+        ResponseEntity<?> createdRetrospective = retrospectiveService.createRetrospective(retrospective);
+        logger.info("Retrospective created with Name: {}", retrospective.getName());
         return new ResponseEntity<>(createdRetrospective, HttpStatus.CREATED);
-
-
     }
 
     @PostMapping("/{name}/feedback")

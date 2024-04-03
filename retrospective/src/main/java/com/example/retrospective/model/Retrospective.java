@@ -1,5 +1,9 @@
 package com.example.retrospective.model;
 
+import com.example.retrospective.controller.RetrospectiveController;
+import jakarta.validation.constraints.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -7,8 +11,11 @@ public class Retrospective {
     private String name;
     private String summary;
     private String date;
+    @NotNull(message = "Retrospective cannot be created without a participants.")
     private List<String> participants;
     private List<Feedback> feedbackItems;
+
+    private final Logger logger = LoggerFactory.getLogger(RetrospectiveController.class);
 
     // Constructor, getters, and setters
     // Omitted for brevity
@@ -40,10 +47,10 @@ public class Retrospective {
     }
 
     public void updateFeedbackItem(String name, Feedback feedback) {
-        if (feedbackItems != null && name != null) {
+        if (feedback != null && name != null) {
             for (int i = 0; i < feedbackItems.size(); i++) {
                 Feedback currentFeedback = feedbackItems.get(i);
-                if (currentFeedback != null && currentFeedback.getName().equals(name)) {
+                if (currentFeedback != null && currentFeedback.getName().equals(feedback.getName())) {
                     feedbackItems.set(i, feedback);
                 }
             }

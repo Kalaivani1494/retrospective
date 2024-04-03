@@ -8,60 +8,73 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+
+import java.util.*;
 
 @Service
-public class RetrospectiveService {
+public class RetrospectiveService implements RetrospectiveServiceInterface {
 
     private final Map<String, Retrospective> retrospectives = new HashMap<>();
     private final Logger logger = LoggerFactory.getLogger(RetrospectiveController.class);
-    public Retrospective createRetrospective(Retrospective retrospective) {
-        if (retrospective.getDate() == null) {
-            logger.error("Retrospective cannot be created without a date.");
-            throw new IllegalArgumentException("Retrospective cannot be created without a date.");
+    @Override
+    public ResponseEntity<?> createRetrospective(Retrospective retrospective) {
+        if (retrospective.getName() == null || retrospective.getName().isEmpty()) {
+            String errorMessage = "Retrospective cannot be created without a name.";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage);
+        }
+
+        if (retrospective.getDate() == null || retrospective.getDate().isEmpty()) {
+            String errorMessage = "Retrospective cannot be created without a date.";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage);
         }
         if (retrospective.getParticipants() == null || retrospective.getParticipants().isEmpty()) {
-            logger.error("Retrospective cannot be created without participants.");
-            throw new IllegalArgumentException("Retrospective cannot be created without participants.");
+            String errorMessage = "Retrospective cannot be created without participants.";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage);
         }
         String name = retrospective.getName();
         if (retrospectives.containsKey(name)) {
-            logger.error("Retrospective with name {} already exists.", name);
-            throw new IllegalArgumentException(STR."Retrospective with name \{name} already exists.");
+            String errorMessage = STR."Retrospective with name \{name} already exists.";
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage);
         }
         retrospectives.put(name, retrospective);
         logger.info("Retrospective created: {}", retrospective);
-        return retrospective;
+        return ResponseEntity.ok(retrospective);
     }
-
+    @Override
     public ResponseEntity<?> addFeedbackItem(String name, Feedback feedback) throws CustomExceptionHandler.ParticipantNotAssociatedException {
         try {
             Retrospective retrospective = getRetrospectiveByName(name);
             boolean isParticipantInRetrospective = isParticipantInRetrospective(name, feedback.getName());
-           if (retrospective == null) {
-               logger.error("Retrospective with name {} does not exist.", name);
-               throw new IllegalArgumentException(STR."Retrospective with name \{name} does not exist.");
-           }
 
-           if (!isParticipantInRetrospective) {
-               logger.error("Participant {} is not associated with the retrospective.", feedback.getName());
-               throw new CustomExceptionHandler.ParticipantNotAssociatedException(STR."Participant \{feedback.getName()} is not associated with the retrospective.");
-           }
+            if (retrospective == null) {
+                logger.error("Retrospective with name {} does not exist.", name);
+                String errorMessage = String.format("Retrospective with name %s does not exist.", name);
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage);
+            }
 
+            if (!isParticipantInRetrospective) {
+                logger.error("Participant {} is not associated with the retrospective.", feedback.getName());
+                throw new CustomExceptionHandler.ParticipantNotAssociatedException(STR."Participant \{feedback.getName()} is not associated with the retrospective.");
+            }
 
-           retrospective.addFeedbackItem(feedback);
-           logger.info("Feedback item added to retrospective: {}", retrospective);
-           return ResponseEntity.ok(getRetrospectiveByName(name));
-    }   catch (CustomExceptionHandler.ParticipantNotAssociatedException e) {
+            // Validate feedbackType
+            String feedbackType = feedback.getFeedbackType().toLowerCase(); // Convert to lowercase for case-insensitive comparison
+            if (!Arrays.asList("positive", "negative", "idea", "praise").contains(feedbackType)) {
+                logger.error("Invalid feedback type: {}", feedbackType);
+                String errorMessage = "Invalid feedback type.";
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage);
+            }
+
+            retrospective.addFeedbackItem(feedback);
+            logger.info("Feedback item added to retrospective: {}", retrospective);
+            return ResponseEntity.ok(getRetrospectiveByName(name));
+        } catch (CustomExceptionHandler.ParticipantNotAssociatedException e) {
             String errorMessage = e.getMessage();
             logger.error("Error adding feedback item: {}", errorMessage);
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessage);
         }
     }
-
+    @Override
     public Retrospective getRetrospectiveByName(String name) {
         for (Retrospective retrospective : retrospectives.values()) {
             if (retrospective.getName().equals(name)) {
@@ -70,7 +83,7 @@ public class RetrospectiveService {
         }
         return null; // Return null if the retrospective with the given name is not found
     }
-
+    @Override
     public boolean isParticipantInRetrospective(String retrospectiveName, String participantName) {
         Retrospective retrospective = getRetrospectiveByName(retrospectiveName);
         if (retrospective == null) {
@@ -80,8 +93,9 @@ public class RetrospectiveService {
         List<String> participants = retrospective.getParticipants();
         return participants != null && participants.contains(participantName);
     }
+    @Override
     public Retrospective updateFeedbackItem(String name, Feedback feedback) {
-        logger.info("Updating feedback item for retrospective: {}", name);
+        logger.info("Updating feedback item for retrospective: {}", feedback.getName());
         Retrospective retrospective = getRetrospectiveByName(name);
         if (retrospective == null) {
             logger.error("Retrospective with name {} does not exist.", name);
@@ -91,7 +105,7 @@ public class RetrospectiveService {
         logger.info("Feedback item updated for retrospective: {}", name);
         return retrospective;
     }
-
+    @Override
     public List<Retrospective> getAllRetrospectives(int page, int pageSize) {
         logger.debug("Getting all retrospectives. Page: {}, PageSize: {}", page, pageSize);
         List<Retrospective> allRetrospectives = new ArrayList<>(retrospectives.values());
@@ -101,7 +115,7 @@ public class RetrospectiveService {
         logger.debug("Retrieved {} retrospectives for page {} with pageSize {}", pagedRetrospectives.size(), page, pageSize);
         return pagedRetrospectives;
     }
-
+    @Override
     public List<Retrospective> searchRetrospectivesByDate(String date) {
         logger.info("Searching retrospectives for date: {}", date);
         List<Retrospective> matchingRetrospectives = new ArrayList<>();

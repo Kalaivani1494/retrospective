@@ -1,66 +1,31 @@
 package com.example.retrospective;
 
-import ch.qos.logback.classic.Logger;
-import com.example.retrospective.controller.RetrospectiveController;
-import com.example.retrospective.model.Feedback;
-import com.example.retrospective.model.Retrospective;
-import com.example.retrospective.service.RetrospectiveService;
+import com.example.retrospective.RetrospectiveControllerTest;
+import com.example.retrospective.RetrospectiveServiceTest;
 import org.junit.jupiter.api.Test;
-import org.mockito.MockitoAnnotations;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.test.context.junit.jupiter.SpringJUnitConfig;
+import org.springframework.test.web.servlet.MockMvc;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
-
-@SpringBootTest
+@SpringBootTest()
 class RetrospectiveApplicationTests {
 
-	@Mock
-	private RetrospectiveService retrospectiveService;
-
-	@InjectMocks
-	private RetrospectiveController retrospectiveController;
-
-	public void RetrospectiveControllerTest() {
-		MockitoAnnotations.initMocks(this);
-	}
-
 	@Test
-	void testAddFeedbackItem_Success() throws CustomExceptionHandler.ParticipantNotAssociatedException {
-		// Mock the retrospectiveService to return an updated retrospective
+	void runTests() throws CustomExceptionHandler.ParticipantNotAssociatedException, Exception {
+		// Run the tests
+		RetrospectiveControllerTest retrospectiveControllerTest = new RetrospectiveControllerTest();
+		retrospectiveControllerTest.setUp();
+		retrospectiveControllerTest.testCreateRetrospective();
+		retrospectiveControllerTest.testUpdateFeedbackItem();
+		retrospectiveControllerTest.testGetAllRetrospectives();
+		retrospectiveControllerTest.testSearchRetrospectivesByDate();
 
-// Arrange
-		String retrospectiveName = "retroName";
-		Feedback feedback = new Feedback();
-		Retrospective retrospective = new Retrospective();
-		when(retrospectiveService.getRetrospectiveByName(retrospectiveName)).thenReturn(retrospective);
-		when(retrospectiveService.isParticipantInRetrospective(retrospectiveName, feedback.getName())).thenReturn(true);
-
-		// Act
-		ResponseEntity<?> response = retrospectiveController.addFeedbackItem(retrospectiveName, feedback);
-
-		// Assert
-		assertEquals(HttpStatus.OK, response.getStatusCode());
-		assertNull(response.getBody());
+		RetrospectiveServiceTest retrospectiveServiceTest = new RetrospectiveServiceTest();
+		retrospectiveServiceTest.setUp();
+		retrospectiveServiceTest.testCreateRetrospective_WithoutName();
+		retrospectiveServiceTest.testCreateRetrospective_WithValidRetrospective();
 	}
-//	@Test
-//	void testAddFeedbackItem_ParticipantNotAssociated() throws CustomExceptionHandler.ParticipantNotAssociatedException {
-//		// Arrange
-//		String retrospectiveName = "retroName";
-//		String participantName = "participant1";
-//		when(retrospectiveService.isParticipantInRetrospective(eq(retrospectiveName), eq(participantName)))
-//				.thenThrow(new CustomExceptionHandler.ParticipantNotAssociatedException("Participant not associated"));
-//
-//		// Act and Assert
-//		assertThrows(CustomExceptionHandler.ParticipantNotAssociatedException.class, () -> {
-//			retrospectiveController.addFeedbackItem(retrospectiveName, new Feedback());
-//		});
-//	}
 
 }
